@@ -31,5 +31,8 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-maven-
 
+      - name: Build Maven project
+        run: mvn clean install --no-transfer-progress
+
       - name: Run Maven tests
-        run: mvn clean test --no-transfer-progress
+        run: mvn test --no-transfer-progress

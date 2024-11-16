@@ -26,7 +26,7 @@
             <artifactId>junit-jupiter</artifactId>
             <version>5.10.0</version>
             <scope>test</scope>
-        </dependency>        
+        </dependency>
 
         <dependency>
             <groupId>org.xerial</groupId>
@@ -42,7 +42,5 @@
             <scope>provided</scope>
         </dependency>
     </dependencies>
-    
-
 
 </project>
