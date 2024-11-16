@@ -1,4 +1,4 @@
-package lab10.decorator;
+package lab10.decorators;
 
 public class MockedDocument implements Document {
     public String gcsPath;

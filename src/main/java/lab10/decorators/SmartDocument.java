@@ -1,4 +1,4 @@
-package lab10.decorator;
+package lab10.decorators;
 
 import com.google.cloud.vision.v1.AnnotateImageRequest;
 import com.google.cloud.vision.v1.AnnotateImageResponse;

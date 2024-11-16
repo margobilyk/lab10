@@ -1,4 +1,4 @@
-package lab10.decorator;
+package lab10.decorators;
 
 import java.time.Duration;
 import java.time.LocalTime;

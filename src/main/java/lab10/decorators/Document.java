@@ -1,4 +1,4 @@
-package lab10.decorator;
+package lab10.decorators;
 
 public interface Document {
     String parse();
