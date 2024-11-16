@@ -4,6 +4,7 @@ import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
+import java.sql.SQLException;
 
 import lombok.SneakyThrows;
 
@@ -38,5 +39,11 @@ public class DBConnection {
             dbConnection = new DBConnection();
         }
         return dbConnection;
+    }
+
+    public void close() throws SQLException {
+        if (connection != null && !connection.isClosed()) {
+            connection.close();
+        }
     }
 }
