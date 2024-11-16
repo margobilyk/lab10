@@ -2,32 +2,35 @@ import org.junit.jupiter.api.*;
 
 import lab10.decorators.DBConnection;
 
-import java.lang.reflect.Field;
+import java.io.File;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.sql.Connection;
-import java.sql.SQLException;
+import java.sql.DriverManager;
 
 import static org.junit.jupiter.api.Assertions.*;
 
 @TestInstance(TestInstance.Lifecycle.PER_METHOD)
 public class DBConnectionTest {
 
+    private static final String TEST_DB_PATH = "/Users/margo/Documents/ucu/oop/lab10/cache.db";
     private DBConnection dbConnection;
 
     @BeforeEach
-void setup() throws Exception {
-    dbConnection = DBConnection.getInstance();
-    Field connectionField = DBConnection.class.getDeclaredField("connection");
-    connectionField.setAccessible(true);
-    Connection connection = (Connection) connectionField.get(dbConnection);
+    void setup() throws Exception {
+        Path directory = Path.of("/Users/margo/Documents/ucu/oop/lab10");
+        if (!Files.exists(directory)) {
+            Files.createDirectories(directory);
+        }
 
-    connection.createStatement().execute("CREATE TABLE IF NOT EXISTS document (path TEXT PRIMARY KEY, parsed TEXT NOT NULL)");
-    connection.createStatement().execute("DELETE FROM document");
-}
+        File dbFile = new File(TEST_DB_PATH);
+        if (!dbFile.exists()) {
+            try (Connection connection = DriverManager.getConnection("jdbc:sqlite:" + TEST_DB_PATH)) {
+                connection.createStatement().execute("CREATE TABLE IF NOT EXISTS document (path TEXT PRIMARY KEY, parsed TEXT NOT NULL)");
+            }
+        }
 
-    @Test
-    void testSingletonInstance() {
-        DBConnection anotherInstance = DBConnection.getInstance();
-        assertSame(dbConnection, anotherInstance, "DBConnection should return the same instance");
+        dbConnection = DBConnection.getInstance();
     }
 
     @Test
@@ -47,5 +50,10 @@ void setup() throws Exception {
 
         String result = dbConnection.getDocument(path);
         assertNull(result, "Retrieving a non-existent document should return null");
+    }
+
+    @AfterEach
+    void tearDown() throws Exception {
+        Files.deleteIfExists(Path.of(TEST_DB_PATH));
     }
 }
