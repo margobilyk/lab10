@@ -1,62 +1,66 @@
 import org.junit.jupiter.api.*;
+
 import lab10.decorators.DBConnection;
 
-import java.io.IOException;
-import java.lang.reflect.Field;
-import java.nio.file.Files;
-import java.nio.file.Path;
 import java.sql.Connection;
 import java.sql.DriverManager;
-import java.sql.SQLException;
 import java.sql.Statement;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-@TestInstance(TestInstance.Lifecycle.PER_METHOD)
 public class DBConnectionTest {
 
     private DBConnection dbConnection;
-    private Path tempDbPath;
 
     @BeforeEach
-    void setup() throws SQLException, IOException, NoSuchFieldException, IllegalAccessException {
-        Path tempDirectory = Files.createTempDirectory("test-db");
-        tempDbPath = tempDirectory.resolve("cache.db");
-        Files.createFile(tempDbPath);
-
+    public void setUp() {
         dbConnection = DBConnection.getInstance();
+        clearDatabase();
+    }
 
-        Field connectionField = DBConnection.class.getDeclaredField("connection");
-        connectionField.setAccessible(true);
-        Connection connection = DriverManager.getConnection("jdbc:sqlite:" + tempDbPath.toAbsolutePath());
-        connectionField.set(dbConnection, connection);
-
-        try (Statement statement = connection.createStatement()) {
-            statement.executeUpdate("CREATE TABLE document (path TEXT PRIMARY KEY, parsed TEXT)");
+    @AfterAll
+    public static void tearDownClass() {
+        try {
+            DBConnection.getInstance().close();
+        } catch (Exception e) {
+            System.err.println("Failed to close DBConnection: " + e.getMessage());
         }
     }
 
     @Test
-    void testCreateAndGetDocument() {
-        String path = "test/path/document1";
-        String parsedData = "Parsed content of document 1";
-        dbConnection.createDocument(path, parsedData);
-        String retrievedData = dbConnection.getDocument(path);
-        assertEquals(parsedData, retrievedData);
+    public void testCreateAndGetDocument() {
+        String path = "test-path";
+        String parsedContent = "This is a test document content.";
+        dbConnection.createDocument(path, parsedContent);
+        String retrievedContent = dbConnection.getDocument(path);
+        assertNotNull(retrievedContent);
+        assertEquals(parsedContent, retrievedContent);
     }
 
     @Test
-    void testGetNonExistentDocument() {
-        String path = "nonexistent/path";
-        String result = dbConnection.getDocument(path);
+    public void testGetNonexistentDocument() {
+        String nonExistentPath = "non-existent-path";
+        String result = dbConnection.getDocument(nonExistentPath);
         assertNull(result);
     }
 
-    @AfterEach
-    void tearDown() throws IOException {
-        if (tempDbPath != null) {
-            Files.deleteIfExists(tempDbPath);
-            Files.deleteIfExists(tempDbPath.getParent());
+    private void clearDatabase() {
+        int retryCount = 5;
+        while (retryCount > 0) {
+            try (Connection connection = DriverManager.getConnection("jdbc:sqlite:/Users/margo/Documents/ucu/oop/lab10/cache.db");
+                 Statement statement = connection.createStatement()) {
+                statement.execute("PRAGMA journal_mode=WAL;");
+                statement.execute("DELETE FROM document;");
+                return;
+            } catch (Exception e) {
+                retryCount--;
+                if (retryCount == 0) {
+                    throw new RuntimeException("Failed to clear database after multiple attempts", e);
+                }
+                try {
+                    Thread.sleep(100);
+                } catch (InterruptedException ignored) {}
+            }
         }
     }
 }

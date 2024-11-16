@@ -25,13 +25,15 @@ public class DBConnection {
 
     @SneakyThrows
     public void createDocument(String gscPath, String parse) {
-        PreparedStatement preparedStatement = connection.prepareStatement(
-                "INSERT INTO document (path, parsed) VALUES (?, ?)"
-        );
+        if (getDocument(gscPath) == null) {
+            PreparedStatement preparedStatement = connection.prepareStatement(
+                    "INSERT INTO document (path, parsed) VALUES (?, ?)"
+            );
         preparedStatement.setString(1, gscPath);
         preparedStatement.setString(2, parse);
         preparedStatement.executeUpdate();
         preparedStatement.close();
+        }
     }
 
     public static DBConnection getInstance() {
