@@ -48,7 +48,7 @@ public class DBConnectionTest {
         int retryCount = 5;
         while (retryCount > 0) {
             try (Connection connection = DriverManager.getConnection("jdbc:sqlite:/Users/margo/Documents/ucu/oop/lab10/cache.db");
-                 Statement statement = connection.createStatement()) {
+                Statement statement = connection.createStatement()) {
                 statement.execute("PRAGMA journal_mode=WAL;");
                 statement.execute("DELETE FROM document;");
                 return;
