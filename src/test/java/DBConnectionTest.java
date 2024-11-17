@@ -15,6 +15,7 @@ public class DBConnectionTest {
     @BeforeEach
     public void setUp() {
         dbConnection = DBConnection.getInstance();
+        initializeDatabase();
         clearDatabase();
     }
 
@@ -44,23 +45,21 @@ public class DBConnectionTest {
         assertNull(result);
     }
 
+    private void initializeDatabase() {
+        try (Connection connection = DriverManager.getConnection("jdbc:sqlite:cache.db");
+            Statement statement = connection.createStatement()) {
+            statement.execute("CREATE TABLE IF NOT EXISTS document (path TEXT PRIMARY KEY, parsed TEXT);");
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to initialize database", e);
+        }
+    }
+
     private void clearDatabase() {
-        int retryCount = 5;
-        while (retryCount > 0) {
-            try (Connection connection = DriverManager.getConnection("jdbc:sqlite:/Users/margo/Documents/ucu/oop/lab10/cache.db");
-                Statement statement = connection.createStatement()) {
-                statement.execute("PRAGMA journal_mode=WAL;");
-                statement.execute("DELETE FROM document;");
-                return;
-            } catch (Exception e) {
-                retryCount--;
-                if (retryCount == 0) {
-                    throw new RuntimeException("Failed to clear database after multiple attempts", e);
-                }
-                try {
-                    Thread.sleep(100);
-                } catch (InterruptedException ignored) {}
-            }
+        try (Connection connection = DriverManager.getConnection("jdbc:sqlite:cache.db");
+            Statement statement = connection.createStatement()) {
+            statement.execute("DELETE FROM document;");
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to clear database", e);
         }
     }
 }

@@ -11,29 +11,29 @@ import lombok.SneakyThrows;
 public class DBConnection {
     private static DBConnection dbConnection;
     private Connection connection;
+
     @SneakyThrows
-    private  DBConnection(){
-        this.connection =DriverManager.getConnection("jdbc:sqlite:/Users/margo/Documents/ucu/oop/lab10/cache.db");
+    private DBConnection() {
+        this.connection = DriverManager.getConnection("jdbc:sqlite:cache.db");
     }
+
     @SneakyThrows
     public String getDocument(String gscPath) {
         PreparedStatement preparedStatement = connection.prepareStatement("SELECT * FROM document WHERE path=?");
         preparedStatement.setString(1, gscPath);
         ResultSet resultSet = preparedStatement.executeQuery();
-        return resultSet.getString("parsed");
+        return resultSet.next() ? resultSet.getString("parsed") : null;
     }
 
     @SneakyThrows
     public void createDocument(String gscPath, String parse) {
-        if (getDocument(gscPath) == null) {
-            PreparedStatement preparedStatement = connection.prepareStatement(
-                    "INSERT INTO document (path, parsed) VALUES (?, ?)"
-            );
+        PreparedStatement preparedStatement = connection.prepareStatement(
+                "INSERT INTO document (path, parsed) VALUES (?, ?)"
+        );
         preparedStatement.setString(1, gscPath);
         preparedStatement.setString(2, parse);
         preparedStatement.executeUpdate();
         preparedStatement.close();
-        }
     }
 
     public static DBConnection getInstance() {
